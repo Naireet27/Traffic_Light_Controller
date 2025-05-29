@@ -4,16 +4,16 @@ This project implements a traffic light controller for a four-way intersection u
 Additionally, the traffic controller logic was re-implemented in C++ and tested on Tinkercad to demonstrate a purely software-based simulation of the system.
 
 **Project Structure**
-- Traffic_Controller.v
+- Traffic_Controller.v - 
 Verilog module implementing the traffic controller FSM logic.
 
-- tb_traffic_controller.v
+- tb_traffic_controller.v - 
 Verilog testbench for simulating the traffic controller module. Generates clock, reset, sensor inputs, and emergency signals.
 
-- traffic_controller.cpp
+- traffic_controller.cpp - 
 C++ program simulating the traffic controller logic in software, runnable on Tinkercad or any C++ environment.
 
-- traffic_dump.vcd
+- traffic_dump.vcd - 
 Waveform dump file generated during Verilog simulation for visualizing signals in GTKWave or other waveform viewers.
 
 **Workflow**
