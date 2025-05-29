@@ -1,4 +1,5 @@
 **Overview**
+
 This project implements a traffic light controller for a four-way intersection using Verilog HDL and simulates its behavior using a testbench. The traffic controller manages signals based on sensor inputs and handles emergency overrides.
 Additionally, the traffic controller logic was re-implemented in C++ and tested on Tinkercad to demonstrate a purely software-based simulation of the system.
 
@@ -17,9 +18,11 @@ Waveform dump file generated during Verilog simulation for visualizing signals i
 
 **Workflow**
 1. Verilog Implementation & Simulation
+   
   Developed the traffic controller FSM and supporting logic in Verilog. Created a testbench to simulate various traffic scenarios and emergency conditions. Ran the simulation in a Verilog simulator (ModelSim) and generated waveform files (traffic_dump.vcd). Used a waveform viewer to verify timing, light states, and emergency handling.
 
 2. C++ Software Simulation
+   
   Translated the Verilog FSM logic into a C++ program, preserving all timing and state transition behavior. Used Tinkercad’s online C++ environment to simulate the traffic controller as a purely software model. Verified that the C++ simulation produces the same logical output as the Verilog model.
 
 **How to Run**
