@@ -85,7 +85,6 @@ module Traffic_Controller (
                 end
                 NS_GREEN: begin
                     // If timer expired AND there's demand from EW
-                    // Note: comparison uses '==' for combinational logic
                     if (state_timer == 0 && ew_sensor_active) begin
                         next_state = NS_YELLOW;
                     end
@@ -114,7 +113,7 @@ module Traffic_Controller (
                      // If emergency stays high, timer expiry moves to EMERGENCY_GREEN (handled above)
                      // For simplicity, assuming emergency stays high to reach here.
                      // If emergency becomes inactive:
-                     // next_state = NS_GREEN; // Or perhaps EW_GREEN depending on prior state
+                     // next_state = NS_GREEN; // Or EW_GREEN depending on prior state
                     if (state_timer == 0) begin // Should be triggered by emergency logic above
                          // This path likely won't be taken if 'emergency' is high
                          // If emergency went low exactly as timer hit 0, revert to normal cycle
