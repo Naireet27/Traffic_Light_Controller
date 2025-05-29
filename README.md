@@ -41,6 +41,7 @@ Waveform dump file generated during Verilog simulation for visualizing signals i
 - Run the simulation to observe the software model output in the serial console or terminal.
 
 **Features**
+
 Four-way traffic light control with North-South and East-West directions.
 Traffic sensor inputs to detect vehicle demand on each road.
 Emergency override that forces all signals to a safe flashing mode.
@@ -48,9 +49,11 @@ Timed green, yellow, and red light cycles.
 Simulation of real-time behavior using both hardware description and software models.
 
 **Notes**
+
 This project is purely a simulation and does not interact with actual hardware.
 The Verilog design focuses on timing and FSM correctness.
 The C++ code mimics the Verilog FSM behavior for educational and prototyping purposes.
 
 **License**
+
 This project is provided as-is for educational use.
