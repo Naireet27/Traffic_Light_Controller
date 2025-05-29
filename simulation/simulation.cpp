@@ -12,12 +12,12 @@ const int LIGHT_EW_G_PIN = 10;
 const int LIGHT_EW_Y_PIN = 11;
 
 // --- State Durations (in Milliseconds) ---
-// Adjusted from Verilog cycles for simulation visibility
-const unsigned long NS_GREEN_MS = 10000; // 10 seconds
-const unsigned long EW_GREEN_MS = 6000;  // 6 seconds
-const unsigned long YELLOW_MS = 2000;    // 2 seconds
-const unsigned long EMERGENCY_WAIT_MS = 500; // 0.5 seconds (for EW_YELLOW -> TRANSITION)
-const unsigned long INIT_MS = 100;       // Short time in INIT state
+// Adjusted for real-time simulation; based on FSM behavior
+const unsigned long NS_GREEN_MS = 10000; // North-South green : 10 seconds
+const unsigned long EW_GREEN_MS = 6000;  // East-West green : 6 seconds
+const unsigned long YELLOW_MS = 2000;    // Yellow for all directions : 2 seconds
+const unsigned long EMERGENCY_WAIT_MS = 500; // Wait during Emergency Transition : 0.5 seconds
+const unsigned long INIT_MS = 100;       // Short duration during INIT state
 
 // --- State Definitions ---
 enum StateType {
@@ -30,12 +30,12 @@ enum StateType {
   EMERGENCY_GREEN
 };
 
-// --- State Variables ---
+// FSM Control variables
 StateType current_state = INIT;
 StateType next_state = INIT; // Stores the calculated next state
-unsigned long stateStartTime = 0; // Records when the current state started (using millis())
+unsigned long stateStartTime = 0; // Records when the current state started
 
-// --- Input Variables ---
+//Input Signal States
 bool reset_active = false;
 bool emergency_active = false;
 bool ns_sensor_active = false;
@@ -45,7 +45,7 @@ void readInputs();
 void updateLights();
 void printStateName(StateType state);
 
-// --- Setup Function (runs once) ---
+//Setup Function (runs once)
 void setup() {
   Serial.begin(9600); // Initialize serial communication for debugging
   Serial.println("Traffic Light Controller Initializing...");
@@ -64,7 +64,7 @@ void setup() {
   pinMode(LIGHT_EW_G_PIN, OUTPUT);
   pinMode(LIGHT_EW_Y_PIN, OUTPUT);
 
-  // Initialize state and timer
+  // Initialize FSM
   current_state = INIT;
   stateStartTime = millis();
   updateLights(); // Set initial light state (all off)
@@ -72,23 +72,22 @@ void setup() {
   Serial.println("Initialization Complete. Starting FSM.");
 }
 
-// --- Loop Function (runs repeatedly) ---
+//Loop Function
 void loop() {
   // 1. Read Inputs
   readInputs();
 
-  // 2. Check for Reset (Highest priority after reading inputs)
+  // 2. Check for Reset which has highest priority
   if (reset_active) {
     Serial.println("RESET Activated!");
     current_state = INIT;
     stateStartTime = millis(); // Reset timer
     updateLights();
-    // Optional: Add a small delay or wait for reset release
-    delay(500); // Debounce/hold reset state briefly
+    delay(500); //Hold reset state briefly
     return; // Skip the rest of the loop iteration
   }
 
-  // 3. Determine Next State Logic (Combinational equivalent)
+  // 3. Determine FSM Next State Logic
   unsigned long currentTime = millis();
   unsigned long elapsedTime = currentTime - stateStartTime;
   unsigned long currentDuration = 0; // Duration required for the current state
@@ -96,7 +95,7 @@ void loop() {
   // Default: stay in the current state unless a condition changes it
   next_state = current_state;
 
-  // --- Emergency Logic ---
+  // Emergency Logic
   if (emergency_active) {
     // Emergency overrides normal operation
     switch (current_state) {
@@ -105,14 +104,14 @@ void loop() {
         next_state = EMERGENCY_GREEN; // Already in NS Green or stay there
         break;
       case EW_GREEN:
-        next_state = EW_YELLOW; // Go Yellow first
-        currentDuration = YELLOW_MS; // Need yellow duration
+        next_state = EW_YELLOW; //Change to Yellow first before switching
+        currentDuration = YELLOW_MS;
         break;
       case EW_YELLOW:
         currentDuration = YELLOW_MS; // Check yellow duration
         if (elapsedTime >= currentDuration) {
              next_state = EMERGENCY_TRANS; // Go to transition state after yellow
-             // Note: Verilog used EMERGENCY_WAIT for TRANS state duration.
+             
         } else {
              next_state = EW_YELLOW; // Stay yellow until timer expires
         }
@@ -120,9 +119,9 @@ void loop() {
        case EMERGENCY_TRANS:
          currentDuration = EMERGENCY_WAIT_MS; // Wait state duration
          if (elapsedTime >= currentDuration) {
-             next_state = EMERGENCY_GREEN; // Wait finished, go NS Green
+             next_state = EMERGENCY_GREEN; // Wait finished, goes to NS Green
          } else {
-             next_state = EMERGENCY_TRANS; // Stay waiting
+             next_state = EMERGENCY_TRANS; //Waiting
          }
          break;
       case NS_YELLOW:
@@ -135,7 +134,7 @@ void loop() {
         break;
     }
   } else {
-    // --- Normal Operation Logic ---
+    //Normal Operation Logic
     switch (current_state) {
       case INIT:
         currentDuration = INIT_MS;
@@ -150,8 +149,7 @@ void loop() {
         if (elapsedTime >= currentDuration && ew_sensor_active) {
           next_state = NS_YELLOW;
         }
-        // Optional: Add max time logic even without EW demand here if needed
-        // else if (elapsedTime >= MAX_NS_GREEN_MS) { next_state = NS_YELLOW; }
+        
         break;
 
       case NS_YELLOW:
@@ -167,8 +165,6 @@ void loop() {
         if (elapsedTime >= currentDuration && ns_sensor_active) {
           next_state = EW_YELLOW;
         }
-        // Optional: Add max time logic even without NS demand here if needed
-        // else if (elapsedTime >= MAX_EW_GREEN_MS) { next_state = EW_YELLOW; }
         break;
 
       case EW_YELLOW:
@@ -186,7 +182,7 @@ void loop() {
         break;
 
       case EMERGENCY_GREEN:
-        // Emergency signal just went low, transition out of emergency state
+        // Emergency signal just went low, meaning transition is out of emergency state
         next_state = NS_GREEN; // Return to normal NS Green
         Serial.println("Emergency ended -> NS_GREEN");
         break;
@@ -198,7 +194,7 @@ void loop() {
     }
   }
 
-  // 4. State Transition Logic (Clocked equivalent)
+  // 4. State Transition Logic
   if (next_state != current_state) {
     Serial.print("State Change: ");
     printStateName(current_state);
@@ -214,7 +210,7 @@ void loop() {
   }  
 }
 
-// --- Helper Function: Read Inputs ---
+//Helper Function: Read Inputs
 void readInputs() {
   // Read reset pin (Active LOW)
   reset_active = (digitalRead(RESET_PIN) == LOW);
@@ -227,7 +223,7 @@ void readInputs() {
   ew_sensor_active = (digitalRead(SENSOR_EW1_PIN) == HIGH) || (digitalRead(SENSOR_EW2_PIN) == HIGH);
 }
 
-// --- Helper Function: Update Light Outputs ---
+//Helper Function: Update Light Outputs
 void updateLights() {
   // Turn all lights off first
   digitalWrite(LIGHT_NS_G_PIN, LOW);
@@ -258,7 +254,7 @@ void updateLights() {
   }
 }
 
-// --- Helper Function: Print State Name ---
+//Helper Function: Print State Name
 void printStateName(StateType state) {
   switch (state) {
     case INIT: Serial.print("INIT"); break;
