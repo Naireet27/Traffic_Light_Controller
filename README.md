@@ -1,6 +1,5 @@
-Overview
+**Overview**
 This project implements a traffic light controller for a four-way intersection using Verilog HDL and simulates its behavior using a testbench. The traffic controller manages signals based on sensor inputs and handles emergency overrides.
-
 Additionally, the traffic controller logic was re-implemented in C++ and tested on Tinkercad to demonstrate a purely software-based simulation of the system.
 
 **Project Structure**
